@@ -153,4 +153,5 @@ if ($i -le 0) {
 
 # Register the hybrid runbook worker
 Write-Output "Registering the hybrid runbook worker..."
+Remove-HybridRunbookWorker -Url $AutomationEndpoint -Key $AutomationPrimaryKey -MachineName $env:computername
 Add-HybridRunbookWorker -Name $HybridGroupName -EndPoint $AutomationEndpoint -Token $AutomationPrimaryKey
