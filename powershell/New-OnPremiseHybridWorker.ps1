@@ -1,3 +1,4 @@
+Start-Transcript -Path Computer.log
 <#PSScriptInfo
 
 .VERSION 1.6
@@ -385,3 +386,4 @@ if ($i -le 0) {
 # Register the hybrid runbook worker
 Write-Output "Registering the hybrid runbook worker..."
 Add-HybridRunbookWorker -Name $HybridGroupName -EndPoint $AutomationEndpoint -Token $AutomationPrimaryKey
+Stop-Transcript
