@@ -1,189 +1,23 @@
-Start-Transcript -Path Computer.log
-<#PSScriptInfo
-
-.VERSION 1.6
-
-.GUID b6ad1d8e-263a-46d6-882b-71592d6e166d
-
-.AUTHOR Azure Automation Team
-
-.COMPANYNAME Microsoft / ITON
-
-.COPYRIGHT
-
-.TAGS Azure Automation
-
-.LICENSEURI https://github.com/azureautomation/runbooks/blob/master/LICENSE
-
-.PROJECTURI https://github.com/azureautomation/runbooks/blob/master/Utility/ARM/New-OnPremiseHybridWorker.ps1
-
-.ICONURI
-
-.EXTERNALMODULEDEPENDENCIES
-
-.REQUIREDSCRIPTS
-
-.EXTERNALSCRIPTDEPENDENCIES
-
-.RELEASENOTES
-
-1.6 - 11/15/2018
- -- MODIFIED BY Alexander Zabielski
- -- Updated the parameters to accept a TenantID to pass to the connection params.
-
-1.5 - 5/29/2018
- -- MODIFIED BY Jenny Hunter
- -- updated use of New-AzureRmOperationInsightsWorkspace cmdlet to user the "PerNode" SKU
-
-1.4 - 1/5/2018
- -- MODIFIED BY V-JASIMS TO FIX RESOURCEGROUP BUG 01/02/2018
- -- added param $OMSResourceGroupName - specify OMS resource group if using an existing OMS workspace
- -- APPROVED BY Jenny Hunter
-
-1.3 - 8/7/2017
--- MODIFIED BY Jenny Hunter
--- updated to account for new region support
-
-1.2 - 7/18/2017
- -- MODIFIED BY Peppe Kerstens at ITON
- -- corrected wrong type assignment
- -- added credential support
- -- APPROVED BY Jenny Hunter
-#>
-
-<#
-
-.SYNOPSIS
-
-    This Azure/OMS Automation runbook onboards a local machine as a hybrid worker. An OMS workspace
-    will all be generated if needed.
-
-
-.DESCRIPTION
-
-    This Azure/OMS Automation runbook onboards a local machine as a hybrid worker. NOTE: This script is
-    intended to be run with administrator privileges and on a machine with WMF 5.
-    
-    The major steps of the script are outlined below.
-    1) Install the necessary modules
-    2) Login to an Azure account
-    3) Check for the resource group and automation account
-    4) Create references to automation account attributes
-    5) Create an OMS Workspace if needed
-    6) Enable the Azure Automation solution in OMS
-    7) Download and install the Microsoft Monitoring Agent
-    8) Register the machine as hybrid worker
-
- 
-.PARAMETER AAResourceGroupName
-
-    Mandatory. The name of the resource group to be referenced for the Automation account.
-
-
-.PARAMETER OMSResourceGroupName
-
-    Optional. The name of the resource group to be referenced for the OMS workspace. If not specified,
-    
-    the AAResourceGroupName is useed.
-
-
-.PARAMETER SubscriptionID
-
-    Mandatory. A string containing the SubscriptionID to be used.
-
-
-.PARAMETER TenantID
-
-    Optional. A string containing the TenantID to be used.
-
-
-.PARAMETER WorkspaceName
-
-    Optional. The name of the OMS Workspace to be referenced. If not specified, a new OMS workspace
-
-    is created using a unique identifier.
-
-
-.PARAMETER AutomationAccountName
-
-    Mandatory. The name of the Automation account to be referenced.
-
-
-.PARAMETER HybridGroupName
-
-    Mandatory. The hybrid worker group name to be referenced.
-
-    
-.PARAMETER Credential
-
-    Optional. The credentials to use when loging into Azure environment. When running this script on a Windows Core machine, credentials MUST be Azure AD credentials.
-
-    See: https://github.com/Azure/azure-powershell/issues/2915
-
-
-.EXAMPLE
-
-    New-OnPremiseHybridWorker -AutomationAccountName "ContosoAA" -AAResourceGroupName "ContosoResources" -HybridGroupName "ContosoHybridGroup" -SubscriptionId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-
-.EXAMPLE
-
-    $Credentials = Get-Credential
-
-    New-OnPremiseHybridWorker -AutomationAccountName "ContosoAA" -AAResourceGroupName "ContosoResources" -HybridGroupName "ContosoHybridGroup" -SubscriptionId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" -Credential $Credentials
-
-
-.NOTES
-
-    AUTHOR: Jenny Hunter, Azure Automation Team
-
-    LASTEDIT: May 29, 2018
-
-    EDITBY: Jenny Hunter
-
-#>
-
-
-#Requires -RunAsAdministrator
-
-Param (
-# Setup initial variables
-[Parameter(Mandatory=$true)]
-[String] $AAResourceGroupName,
-
-[Parameter(Mandatory=$false)]
-[String] $OMSResourceGroupName,
-
-[Parameter(Mandatory=$true)]
-[String] $SubscriptionID,
-
-[Parameter(Mandatory=$false)]
-[String] $TenantID,
-
-# OMS Workspace
-[Parameter(Mandatory=$false)]
-[String] $WorkspaceName = "hybridWorkspace" + (Get-Random -Maximum 99999),
-
-# Automation Account
-[Parameter(Mandatory=$true)]
-[String] $AutomationAccountName,
-
-# Hyprid Group
-[Parameter(Mandatory=$true)]
-[String] $HybridGroupName,
-
-[Parameter(Mandatory=$true)]
-[String] $username,
-
-[Parameter(Mandatory=$true)]
-[String] $password,
-
-# Hyprid Group
-[Parameter(Mandatory=$false)]
-[PSCredential] $Credential
+[CmdletBinding()]
+
+Param(
+  [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
+  [Parameter(Mandatory=$false)] [String] $OMSResourceGroupName,
+  [Parameter(Mandatory=$true)] [String] $SubscriptionID,
+  [Parameter(Mandatory=$false)] [String] $TenantID,
+  [Parameter(Mandatory=$false)] [String] $WorkspaceName = "hybridWorkspace" + (Get-Random -Maximum 99999),
+  [Parameter(Mandatory=$true)] [String] $AutomationAccountName,
+  [Parameter(Mandatory=$true)] [String] $HybridGroupName,
+  [Parameter(Mandatory=$true)] [String] $username,
+  [Parameter(Mandatory=$true)] [String] $password,
+  [Parameter(Mandatory=$false)] [PSCredential] $Credential
 )
 
+Start-Transcript -Path Computer.log
+
 Write-Output "Automation Account name is $AutomationAccountName"
+Write-Output "Automation Account name is $AAResourceGroupName"
+
 # Stop the script if any errors occur
 $ErrorActionPreference = "Stop"
 
