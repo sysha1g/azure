@@ -65,15 +65,15 @@ $additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsight
 # Install deps1 which are pre-requisite for subsequest modules
 foreach($dep in $deps1){
     $module = Find-Module -Name $dep
-    Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+    Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
 }
 # Install deps2 which are pre-requisite for subsequest modules
 $module = Find-Module -Name $deps2
-Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
 
 foreach($mod in $additional){
     $module = Find-Module -Name $mod
-    Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+    Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
 }
 
 ###################################################################################
