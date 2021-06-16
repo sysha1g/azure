@@ -65,7 +65,8 @@ Write-Output "Pulling Azure account credentials..."
 
 # Login to Azure account
 $pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $password)
-Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
+#Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
+Connect-AzureRmAccount -Credential $Credential -Tenant $tenantId -ServicePrincipal
 
 
 # Get a reference to the current subscription
@@ -73,20 +74,19 @@ Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
 # Get the tenant id for this subscription
 #$TenantID = $Subscription.TenantId
 
-
 # Set the active subscription
-$null = Set-AzContext -SubscriptionID $SubscriptionID
+$null = Set-AzureRmContext -SubscriptionID $SubscriptionID
 
 # Check that the resource groups are valid
-$null = Get-AzResourceGroup -Name $AAResourceGroupName
+$null = Get-AzureRmResourceGroup -Name $AAResourceGroupName
 if ($OMSResourceGroupName) {
-    $null = Get-AzResourceGroup -Name $OMSResourceGroupName
+    $null = Get-AzureRmResourceGroup -Name $OMSResourceGroupName
 } else {
     $OMSResourceGroupName = $AAResourceGroupName
 }
 
 # Check that the automation account is valid
-$AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
+$AutomationAccount = Get-AzureRmAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
 
 # Find the automation account region
 $AALocation = $AutomationAccount.Location
@@ -95,14 +95,14 @@ $AALocation = $AutomationAccount.Location
 Write-Output("Accessing Azure Automation Account named $AutomationAccountName in region $AALocation...")
 
 # Get Azure Automation Primary Key and Endpoint
-$AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
+$AutomationInfo = Get-AzureRMAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
 $AutomationPrimaryKey = $AutomationInfo.PrimaryKey
 $AutomationEndpoint = $AutomationInfo.Endpoint
 
 # Create a new OMS workspace if needed
 try {
 
-    $Workspace = Get-AzOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $OMSResourceGroupName  -ErrorAction Stop
+    $Workspace = Get-AzureRmOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $OMSResourceGroupName  -ErrorAction Stop
     $OmsLocation = $Workspace.Location
     Write-Output "Referencing existing OMS Workspace named $WorkspaceName in region $OmsLocation..."
 
@@ -129,7 +129,7 @@ try {
 
     Write-Output "Creating new OMS Workspace named $WorkspaceName in region $OmsLocation..."
     # Create the new workspace for the given name, region, and resource group
-    $Workspace = New-AzOperationalInsightsWorkspace -Location $OmsLocation -Name $WorkspaceName -Sku PerNode -ResourceGroupName $OMSResourceGroupName
+    $Workspace = New-AzureRmOperationalInsightsWorkspace -Location $OmsLocation -Name $WorkspaceName -Sku PerNode -ResourceGroupName $OMSResourceGroupName
 
 }
 
@@ -142,11 +142,11 @@ if (!($AALocation -match $OmsLocation) -and !($OmsLocation -match "eastus" -and 
 $WorkspaceId = $Workspace.CustomerId
 
 # Get the primary key for the OMS workspace
-$WorkspaceSharedKeys = Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
+$WorkspaceSharedKeys = Get-AzureRmOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceKey = $WorkspaceSharedKeys.PrimarySharedKey
 
 # Activate the Azure Automation solution in the workspace
-$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
+$null = Set-AzureRmOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
 # Check for the MMA on the machine
 try {
