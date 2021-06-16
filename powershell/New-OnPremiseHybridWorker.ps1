@@ -25,7 +25,7 @@ $ErrorActionPreference = "Stop"
 Write-Output "Importing necessary modules..."
 
 # Create a list of the modules necessary to register a hybrid worker
-$AzureRModule = @{"Name" = "Az"; "Version" = ""}
+$AzureRmModule = @{"Name" = "AzureRM"; "Version" = ""}
 $Modules = @($AzureRmModule)
 
 # Import modules
