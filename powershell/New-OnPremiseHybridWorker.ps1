@@ -13,11 +13,6 @@ Param(
   [Parameter(Mandatory=$false)] [PSCredential] $Credential
 )
 
-Start-Transcript -Path Computer.log
-
-Write-Output "Automation Account name is $AutomationAccountName"
-Write-Output "Automation Account name is $AAResourceGroupName"
-
 # Stop the script if any errors occur
 $ErrorActionPreference = "Stop"
 
@@ -27,6 +22,9 @@ Write-Output "Importing necessary modules..."
 # Create a list of the modules necessary to register a hybrid worker
 $AzureRmModule = @{"Name" = "AzureRM"; "Version" = ""}
 $Modules = @($AzureRmModule)
+
+# PowerShellGet requires NuGet provider version '2.8.5.201' or newer to interact with NuGet-based repositories
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
 # Import modules
 foreach ($Module in $Modules) {
@@ -64,9 +62,10 @@ foreach ($Module in $Modules) {
 Write-Output "Pulling Azure account credentials..."
 
 # Login to Azure account
-$pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $password)
+$pwd = ConvertTo-SecureString $password -AsPlainText -Force
+$pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $pwd)
 #Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
-Connect-AzureRmAccount -Credential $Credential -Tenant $tenantId -ServicePrincipal
+Connect-AzureRmAccount -Credential $pscredential -Tenant $tenantId -ServicePrincipal
 
 
 # Get a reference to the current subscription
@@ -220,4 +219,3 @@ if ($i -le 0) {
 # Register the hybrid runbook worker
 Write-Output "Registering the hybrid runbook worker..."
 Add-HybridRunbookWorker -Name $HybridGroupName -EndPoint $AutomationEndpoint -Token $AutomationPrimaryKey
-Stop-Transcript
