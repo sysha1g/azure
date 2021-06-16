@@ -165,7 +165,7 @@ Param (
 
 # Automation Account
 [Parameter(Mandatory=$true)]
-[String] $AutomationAccountName ,
+[String] $AutomationAccountName,
 
 # Hyprid Group
 [Parameter(Mandatory=$true)]
@@ -182,7 +182,7 @@ Param (
 [PSCredential] $Credential
 )
 
-
+Write-Output "Automation Account name is $AutomationAccountName"
 # Stop the script if any errors occur
 $ErrorActionPreference = "Stop"
 
