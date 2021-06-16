@@ -189,6 +189,12 @@ Param (
 [Parameter(Mandatory=$true)]
 [String] $HybridGroupName,
 
+[Parameter(Mandatory=$true)]
+[String] $username,
+
+[Parameter(Mandatory=$true)]
+[String] $password,
+
 # Hyprid Group
 [Parameter(Mandatory=$false)]
 [PSCredential] $Credential
@@ -202,7 +208,7 @@ $ErrorActionPreference = "Stop"
 Write-Output "Importing necessary modules..."
 
 # Create a list of the modules necessary to register a hybrid worker
-$AzureRmModule = @{"Name" = "AzureRM"; "Version" = ""}
+$AzureRModule = @{"Name" = "Az"; "Version" = ""}
 $Modules = @($AzureRmModule)
 
 # Import modules
@@ -235,24 +241,15 @@ foreach ($Module in $Modules) {
     }
 }
 
+
+
 # Connect to the current Azure account
 Write-Output "Pulling Azure account credentials..."
 
 # Login to Azure account
-$paramsplat = @{}
+$pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $password)
+Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
 
-if ($Credential) {
-    $paramsplat.Credential = $Credential
-}
-
-if($TenantID) {
-    $paramsplat.TenantId = $TenantID
-}
-
-Write-Output "Connecting with the Following Parameters"
-Write-Output $paramsplat
-
-$Account = Add-AzureRmAccount @paramsplat 
 
 # Get a reference to the current subscription
 #$Subscription = Get-AzureRmSubscription -SubscriptionId $SubscriptionID
@@ -261,18 +258,18 @@ $Account = Add-AzureRmAccount @paramsplat
 
 
 # Set the active subscription
-$null = Set-AzureRmContext -SubscriptionID $SubscriptionID
+$null = Set-AzContext -SubscriptionID $SubscriptionID
 
 # Check that the resource groups are valid
-$null = Get-AzureRmResourceGroup -Name $AAResourceGroupName
+$null = Get-AzResourceGroup -Name $AAResourceGroupName
 if ($OMSResourceGroupName) {
-    $null = Get-AzureRmResourceGroup -Name $OMSResourceGroupName
+    $null = Get-AzResourceGroup -Name $OMSResourceGroupName
 } else {
     $OMSResourceGroupName = $AAResourceGroupName
 }
 
 # Check that the automation account is valid
-$AutomationAccount = Get-AzureRmAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
+$AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
 
 # Find the automation account region
 $AALocation = $AutomationAccount.Location
@@ -281,14 +278,14 @@ $AALocation = $AutomationAccount.Location
 Write-Output("Accessing Azure Automation Account named $AutomationAccountName in region $AALocation...")
 
 # Get Azure Automation Primary Key and Endpoint
-$AutomationInfo = Get-AzureRMAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
+$AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
 $AutomationPrimaryKey = $AutomationInfo.PrimaryKey
 $AutomationEndpoint = $AutomationInfo.Endpoint
 
 # Create a new OMS workspace if needed
 try {
 
-    $Workspace = Get-AzureRmOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $OMSResourceGroupName  -ErrorAction Stop
+    $Workspace = Get-AzOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $OMSResourceGroupName  -ErrorAction Stop
     $OmsLocation = $Workspace.Location
     Write-Output "Referencing existing OMS Workspace named $WorkspaceName in region $OmsLocation..."
 
@@ -315,7 +312,7 @@ try {
 
     Write-Output "Creating new OMS Workspace named $WorkspaceName in region $OmsLocation..."
     # Create the new workspace for the given name, region, and resource group
-    $Workspace = New-AzureRmOperationalInsightsWorkspace -Location $OmsLocation -Name $WorkspaceName -Sku PerNode -ResourceGroupName $OMSResourceGroupName
+    $Workspace = New-AzOperationalInsightsWorkspace -Location $OmsLocation -Name $WorkspaceName -Sku PerNode -ResourceGroupName $OMSResourceGroupName
 
 }
 
@@ -328,11 +325,11 @@ if (!($AALocation -match $OmsLocation) -and !($OmsLocation -match "eastus" -and 
 $WorkspaceId = $Workspace.CustomerId
 
 # Get the primary key for the OMS workspace
-$WorkspaceSharedKeys = Get-AzureRmOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
+$WorkspaceSharedKeys = Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceKey = $WorkspaceSharedKeys.PrimarySharedKey
 
 # Activate the Azure Automation solution in the workspace
-$null = Set-AzureRmOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
+$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
 # Check for the MMA on the machine
 try {
