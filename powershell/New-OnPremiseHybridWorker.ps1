@@ -98,11 +98,6 @@ $null = Set-AzureRmContext -SubscriptionID $SubscriptionID
 
 # Check that the resource groups are valid
 $null = Get-AzureRmResourceGroup -Name $AAResourceGroupName
-if ($OMSResourceGroupName) {
-    $null = Get-AzureRmResourceGroup -Name $OMSResourceGroupName
-} else {
-    $OMSResourceGroupName = $AAResourceGroupName
-}
 
 # Check that the automation account is valid
 $AutomationAccount = Get-AzureRmAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
@@ -118,88 +113,8 @@ $AutomationInfo = Get-AzureRMAutomationRegistrationInfo -ResourceGroupName $AARe
 $AutomationPrimaryKey = $AutomationInfo.PrimaryKey
 $AutomationEndpoint = $AutomationInfo.Endpoint
 
-# Create a new OMS workspace if needed
-try {
-
-    $Workspace = Get-AzureRmOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $OMSResourceGroupName  -ErrorAction Stop
-    $OmsLocation = $Workspace.Location
-    Write-Output "Referencing existing OMS Workspace named $WorkspaceName in region $OmsLocation..."
-
-} catch {
-
-    # Select an OMS workspace region based on the AA region
-    if ($AALocation -match "europe") {
-        $OmsLocation = "westeurope"
-    } elseif ($AALocation -match "asia") {
-        $OmsLocation = "southeastasia"
-    } elseif ($AALocation -match "india") {
-        $OmsLocation = "southeastasia"
-    } elseif ($AALocation -match "australia") {
-        $OmsLocation = "australiasoutheast"
-    } elseif ($AALocation -match "centralus") {
-        $OmsLocation = "westcentralus"
-    } elseif ($AALocation -match "japan") {
-        $OmsLocation = "japaneast"
-    } elseif ($AALocation -match "uk") {
-        $OmsLocation = "uksouth"
-    } else {
-        $OmsLocation = "eastus"
-    }
-
-    Write-Output "Creating new OMS Workspace named $WorkspaceName in region $OmsLocation..."
-    # Create the new workspace for the given name, region, and resource group
-    $Workspace = New-AzureRmOperationalInsightsWorkspace -Location $OmsLocation -Name $WorkspaceName -Sku PerNode -ResourceGroupName $OMSResourceGroupName
-
-}
-
-# Provide warning if the Automation account and OMS regions are different
-if (!($AALocation -match $OmsLocation) -and !($OmsLocation -match "eastus" -and $AALocation -match "eastus")) {
-    Write-Output "Warning: Your Automation account and OMS workspace are in different regions and will not be compatible for future linking."
-}
-
-# Get the workspace ID
-$WorkspaceId = $Workspace.CustomerId
-
-# Get the primary key for the OMS workspace
-$WorkspaceSharedKeys = Get-AzureRmOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
-$WorkspaceKey = $WorkspaceSharedKeys.PrimarySharedKey
-
 # Activate the Azure Automation solution in the workspace
-$null = Set-AzureRmOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
-
-# Check for the MMA on the machine
-try {
-
-    $mma = New-Object -ComObject 'AgentConfigManager.MgmtSvcCfg'
-    
-    Write-Output "Configuring the MMA..."
-    $mma.AddCloudWorkspace($WorkspaceId, $WorkspaceKey)
-    $mma.ReloadConfiguration()
-
-} catch {
-    # Download the Microsoft monitoring agent
-    Write-Output "Downloading and installing the Microsoft Monitoring Agent..."
-
-    # Check whether or not to download the 64-bit executable or the 32-bit executable
-    if ([Environment]::Is64BitProcess) {
-        $Source = "http://download.microsoft.com/download/1/5/E/15E274B9-F9E2-42AE-86EC-AC988F7631A0/MMASetup-AMD64.exe"
-    } else {
-        $Source = "http://download.microsoft.com/download/1/5/E/15E274B9-F9E2-42AE-86EC-AC988F7631A0/MMASetup-i386.exe"
-    }
-
-    $Destination = "$env:temp\MMASetup.exe"
-
-    $null = Invoke-WebRequest -uri $Source -OutFile $Destination
-    $null = Unblock-File $Destination
-
-    # Change directory to location of the downloaded MMA
-    cd $env:temp
-
-    # Install the MMA
-    $Command = "/C:setup.exe /qn ADD_OPINSIGHTS_WORKSPACE=1 OPINSIGHTS_WORKSPACE_ID=$WorkspaceID" + " OPINSIGHTS_WORKSPACE_KEY=$WorkspaceKey " + " AcceptEndUserLicenseAgreement=1"
-    .\MMASetup.exe $Command
-
-}
+#$null = Set-AzureRmOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
 # Sleep until the MMA object has been registered
 Write-Output "Waiting for agent registration to complete..."
