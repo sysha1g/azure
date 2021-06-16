@@ -56,7 +56,27 @@ foreach ($Module in $Modules) {
     }
 }
 
+# Install Az Modules - Needs refinement
 
+$deps1 = @("Az.Accounts","Az.Profile")
+$deps2 = "Az.Blueprint"
+$additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
+
+# Install deps1 which are pre-requisite for subsequest modules
+foreach($dep in $deps1){
+    $module = Find-Module -Name $dep
+    Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+}
+# Install deps2 which are pre-requisite for subsequest modules
+$module = Find-Module -Name $deps2
+Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+
+foreach($mod in $additional){
+    $module = Find-Module -Name $mod
+    Install-Module -Name $module.Name -RequiredVersion $module.Version -Force
+}
+
+###################################################################################
 
 # Connect to the current Azure account
 Write-Output "Pulling Azure account credentials..."
