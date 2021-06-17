@@ -2,15 +2,12 @@
 
 Param(
   [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
-  [Parameter(Mandatory=$false)] [String] $OMSResourceGroupName,
   [Parameter(Mandatory=$true)] [String] $SubscriptionID,
   [Parameter(Mandatory=$false)] [String] $TenantID,
-  [Parameter(Mandatory=$false)] [String] $WorkspaceName = "hybridWorkspace" + (Get-Random -Maximum 99999),
   [Parameter(Mandatory=$true)] [String] $AutomationAccountName,
   [Parameter(Mandatory=$true)] [String] $HybridGroupName,
   [Parameter(Mandatory=$true)] [String] $username,
-  [Parameter(Mandatory=$true)] [String] $password,
-  [Parameter(Mandatory=$false)] [PSCredential] $Credential
+  [Parameter(Mandatory=$true)] [String] $password
 )
 
 # Stop the script if any errors occur
@@ -59,21 +56,95 @@ foreach ($Module in $Modules) {
 # Install Az Modules - Needs refinement
 
 $deps1 = @("Az.Accounts","Az.Profile")
-$deps2 = "Az.Blueprint"
+$deps2 = @("Az.Blueprint")
 $additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
 
 # Install deps1 which are pre-requisite for subsequest modules
-foreach($dep in $deps1){
-    $module = Find-Module -Name $dep
-    Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
+foreach ($Module in $deps1) {
+
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
 }
 # Install deps2 which are pre-requisite for subsequest modules
-$module = Find-Module -Name $deps2
-Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
+foreach ($Module in $deps2) {
 
-foreach($mod in $additional){
-    $module = Find-Module -Name $mod
-    Install-Module -Name $module.Name -RequiredVersion $module.Version -AllowClobber -Force
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
+}
+
+foreach ($Module in $additional) {
+
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
 }
 
 ###################################################################################
