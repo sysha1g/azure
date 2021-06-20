@@ -115,6 +115,8 @@ $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourc
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
+Set-AzOperationalInsightsIntelligencePack -ResourceGroupName weu-centrallogging-pr-rg -WorkspaceName log-centrallogs -IntelligencePackName "AzureAutomation" -Enabled $true -DefaultProfile
+
 # Sleep until the MMA object has been registered
 Write-Output "Waiting for agent registration to complete..."
 
