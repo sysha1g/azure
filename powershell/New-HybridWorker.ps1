@@ -6,6 +6,100 @@ Param(
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName
 )
 
+# Install Az Modules - Needs refinement
+
+$deps1 = @("Az.Accounts","Az.Profile")
+$deps2 = @("Az.Blueprint")
+$additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
+
+# Install deps1 which are pre-requisite for subsequest modules
+foreach ($Module in $deps1) {
+
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
+}
+# Install deps2 which are pre-requisite for subsequest modules
+foreach ($Module in $deps2) {
+
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
+}
+
+foreach ($Module in $additional) {
+
+    $ModuleName = $Module.Name
+
+    # Find the module version
+    if ([string]::IsNullOrEmpty($Module.Version)){
+        
+        # Find the latest module version if a version wasn't provided
+        $ModuleVersion = (Find-Module -Name $ModuleName).Version
+
+    } else {
+
+        $ModuleVersion = $Module.Version
+
+    }
+
+    # Check if the required module is already installed
+    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
+
+    if (!$CurrentModule) {
+
+        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
+        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
+
+    } else {
+        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
+    }
+}
+
 # Login to Azure account
 $pwd = ConvertTo-SecureString $password -AsPlainText -Force
 $pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $pwd)
@@ -19,7 +113,7 @@ $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
 # wait until the MMA Agent downloads AzureAutomation on to the machine
-$azureautomationpath = "$env:ProgramFiles\Microsoft Monitoring Agent\Agent\AzureAutomation"
+$azureautomationpath = "C:\\Program Files\\Microsoft Monitoring Agent\\Agent\\AzureAutomation"
 $version = (ls | Sort-Object LastWriteTime -Descending | Select -First 1).Name
 $automationworkerversionpath = Join-Path $azureautomationpath $version -Resolve
 $workerFolder = Join-Path $automationworkerversionpath "HybridRegistration"
