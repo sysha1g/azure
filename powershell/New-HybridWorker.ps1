@@ -19,8 +19,9 @@ $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
 # wait until the MMA Agent downloads AzureAutomation on to the machine
-$azureautomationpath = "C:\\Program Files\\Microsoft Monitoring Agent\\Agent\\AzureAutomation"
-$automationworkerversionpath = Join-Path $azureautomationpath "7.*" -Resolve
+$azureautomationpath = "$env:ProgramFiles\Microsoft Monitoring Agent\Agent\AzureAutomation"
+$version = (ls | Sort-Object LastWriteTime -Descending | Select -First 1).Name
+$automationworkerversionpath = Join-Path $azureautomationpath $version -Resolve
 $workerFolder = Join-Path $automationworkerversionpath "HybridRegistration"
 
 $i = 0
