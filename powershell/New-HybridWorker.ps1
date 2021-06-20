@@ -9,7 +9,7 @@ Param(
 # Install Az Modules - Needs refinement
 
 $deps1 = @("Az.Accounts","Az.Profile")
-$deps2 = @("Az.Blueprint")
+$deps2 = @("Az.Blueprint,"Az.OperationalInsights")
 $additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
 
 # PowerShellGet requires NuGet provider version '2.8.5.201' or newer to interact with NuGet-based repositories
