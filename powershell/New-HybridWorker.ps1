@@ -12,6 +12,9 @@ $deps1 = @("Az.Accounts","Az.Profile")
 $deps2 = @("Az.Blueprint")
 $additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
 
+# PowerShellGet requires NuGet provider version '2.8.5.201' or newer to interact with NuGet-based repositories
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+
 # Install deps1 which are pre-requisite for subsequest modules
 foreach ($Module in $deps1) {
 
