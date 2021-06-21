@@ -5,7 +5,9 @@ Param(
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName
 )
-
+Start-Transcript -Path "transcript0.txt" -NoClobber
+$OMSResourceGroupName = 'weu-centrallogging-pr-rg'
+$WorkspaceName = 'log-centrallogs'
 # Install Az Modules - Needs refinement
 
 $deps1 = @("Az.Accounts","Az.Profile")
@@ -115,7 +117,8 @@ $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourc
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
-Set-AzOperationalInsightsIntelligencePack -ResourceGroupName weu-centrallogging-pr-rg -WorkspaceName log-centrallogs -IntelligencePackName "AzureAutomation" -Enabled $true -DefaultProfile
+# Activate the Azure Automation solution in the workspace
+$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true -DefaultProfile
 
 # Sleep until the MMA object has been registered
 Write-Output "Waiting for agent registration to complete..."
@@ -152,3 +155,4 @@ if ($i -le 0) {
     throw "The HybridRegistration module was not found. Please ensure the Microsoft Monitoring Agent was correctly installed."
 }
 Add-HybridRunbookWorker -GroupName $HybridGroupName -EndPoint $agentServiceEndpoint -Token $aaToken
+Stop-Transcript
