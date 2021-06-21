@@ -17,92 +17,32 @@ $additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsight
 # PowerShellGet requires NuGet provider version '2.8.5.201' or newer to interact with NuGet-based repositories
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
+$deps1 = @("Az.Accounts","Az.Profile")
+$deps2 = "Az.Blueprint"
+$additional = @("Az.Automation","Az.Consumption","Az.KeyVault","Az.PolicyInsights","Az.Resources","Az.Security","Az.Subscription","Microsoft.Online.SharePoint.PowerShell","SharePointPnPPowerShellOnline")
+
+
 # Install deps1 which are pre-requisite for subsequest modules
-foreach ($Module in $deps1) {
-
-    $ModuleName = $Module.Name
-
-    # Find the module version
-    if ([string]::IsNullOrEmpty($Module.Version)){
-        
-        # Find the latest module version if a version wasn't provided
-        $ModuleVersion = (Find-Module -Name $ModuleName).Version
-
-    } else {
-
-        $ModuleVersion = $Module.Version
-
-    }
-
-    # Check if the required module is already installed
-    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
-
-    if (!$CurrentModule) {
-
-        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
-        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
-
-    } else {
-        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
-    }
+foreach($dep in $deps1){
+    $module = Find-Module -Name $dep
+    Install-Module -Name $module -AllowClobber -Force
 }
+
+Start-Sleep -s 120
+
 # Install deps2 which are pre-requisite for subsequest modules
-foreach ($Module in $deps2) {
-
-    $ModuleName = $Module.Name
-
-    # Find the module version
-    if ([string]::IsNullOrEmpty($Module.Version)){
-        
-        # Find the latest module version if a version wasn't provided
-        $ModuleVersion = (Find-Module -Name $ModuleName).Version
-
-    } else {
-
-        $ModuleVersion = $Module.Version
-
-    }
-
-    # Check if the required module is already installed
-    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
-
-    if (!$CurrentModule) {
-
-        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
-        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
-
-    } else {
-        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
-    }
+# Install additional modules
+foreach($dep in $deps2){
+    $module = Find-Module -Name $dep
+    Install-Module -Name $module -AllowClobber -Force
 }
 
-foreach ($Module in $additional) {
+Start-Sleep -s 120
 
-    $ModuleName = $Module.Name
-
-    # Find the module version
-    if ([string]::IsNullOrEmpty($Module.Version)){
-        
-        # Find the latest module version if a version wasn't provided
-        $ModuleVersion = (Find-Module -Name $ModuleName).Version
-
-    } else {
-
-        $ModuleVersion = $Module.Version
-
-    }
-
-    # Check if the required module is already installed
-    $CurrentModule = Get-Module -Name $ModuleName -ListAvailable | where "Version" -eq $ModuleVersion
-
-    if (!$CurrentModule) {
-
-        $null = Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -AllowClobber -Force
-        Write-Output " Successfully installed version $ModuleVersion of $ModuleName..."
-
-    } else {
-        Write-Output " Required version $ModuleVersion of $ModuleName is installed..."
-    }
+# Install additional modules
+foreach($mod in $additional){
+    $module = Find-Module -Name $mod
+    Install-Module -Name $module -AllowClobber -Force
 }
 
 # Login to Azure account
