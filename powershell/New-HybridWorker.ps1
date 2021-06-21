@@ -3,6 +3,7 @@ Param(
     [Parameter(Mandatory=$true)] [String] $username,
     [Parameter(Mandatory=$true)] [String] $password,
     [Parameter(Mandatory=$true)] [String] $tenantId,
+    [Parameter(Mandatory=$true)] [String] $subscriptionId,
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName
 )
@@ -23,14 +24,14 @@ foreach($dep in $deps1){
     Install-Module -Name $dep -AllowClobber -Force
 }
 
-Start-Sleep -s 120
+#Start-Sleep -s 120
 
 # Install deps2 which are pre-requisite for subsequest modules
 foreach($dep in $deps2){
     Install-Module -Name $dep -AllowClobber -Force
 }
 
-Start-Sleep -s 120
+#Start-Sleep -s 120
 
 # Install additional modules
 foreach($mod in $additional){
@@ -41,6 +42,7 @@ foreach($mod in $additional){
 $pwd = ConvertTo-SecureString $password -AsPlainText -Force
 $pscredential = New-Object -TypeName System.Management.Automation.PSCredential($username, $pwd)
 Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
+Set-AzContext -Subscription $subscriptionId
 
 $AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
 
@@ -48,9 +50,6 @@ $AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroup
 $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
-
-# Activate the Azure Automation solution in the workspace
-$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true -DefaultProfile
 
 # Sleep until the MMA object has been registered
 Write-Output "Waiting for agent registration to complete..."
