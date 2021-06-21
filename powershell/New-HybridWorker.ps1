@@ -7,9 +7,9 @@ Param(
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName
 )
+
 Start-Transcript -Path "transcript0.txt" -NoClobber
-$OMSResourceGroupName = 'weu-centrallogging-pr-rg'
-$WorkspaceName = 'log-centrallogs'
+
 # Install Az Modules - Needs refinement
 
 $deps1 = @("Az.Accounts","Az.Profile")
