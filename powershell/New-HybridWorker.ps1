@@ -2,6 +2,7 @@ Param(
     [Parameter(Mandatory=$true)] [String] $HybridGroupName,
     [Parameter(Mandatory=$true)] [String] $username,
     [Parameter(Mandatory=$true)] [String] $password,
+    [Parameter(Mandatory=$true)] [String] $tenantId,
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName
 )
