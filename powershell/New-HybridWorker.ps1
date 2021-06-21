@@ -19,25 +19,21 @@ Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
 # Install deps1 which are pre-requisite for subsequest modules
 foreach($dep in $deps1){
-    $module = Find-Module -Name $dep
-    Install-Module -Name $module -AllowClobber -Force
+    Install-Module -Name $dep -AllowClobber -Force
 }
 
 Start-Sleep -s 120
 
 # Install deps2 which are pre-requisite for subsequest modules
-# Install additional modules
 foreach($dep in $deps2){
-    $module = Find-Module -Name $dep
-    Install-Module -Name $module -AllowClobber -Force
+    Install-Module -Name $dep -AllowClobber -Force
 }
 
 Start-Sleep -s 120
 
 # Install additional modules
 foreach($mod in $additional){
-    $module = Find-Module -Name $mod
-    Install-Module -Name $module -AllowClobber -Force
+    Install-Module -Name $mod -AllowClobber -Force
 }
 
 # Login to Azure account
