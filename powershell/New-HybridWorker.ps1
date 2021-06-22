@@ -5,7 +5,9 @@ Param(
     [Parameter(Mandatory=$true)] [String] $tenantId,
     [Parameter(Mandatory=$true)] [String] $subscriptionId,
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
-    [Parameter(Mandatory=$true)] [String] $AutomationAccountName
+    [Parameter(Mandatory=$true)] [String] $AutomationAccountName,
+    [Parameter(Mandatory=$true)] [String] $OMSResourceGroupName
+    [Parameter(Mandatory=$true)] [String] $WorkspaceName
 )
 
 Start-Transcript -Path "transcript0.txt" -NoClobber
@@ -50,6 +52,9 @@ $AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroup
 $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourceGroupName -AutomationAccountName $AutomationAccountName
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
+
+# Activate the Azure Automation solution in the workspace
+$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
 # Sleep until the MMA object has been registered
 Write-Output "Waiting for agent registration to complete..."
