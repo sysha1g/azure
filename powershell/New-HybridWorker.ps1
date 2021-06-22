@@ -6,7 +6,7 @@ Param(
     [Parameter(Mandatory=$true)] [String] $subscriptionId,
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName,
-    [Parameter(Mandatory=$true)] [String] $OMSResourceGroupName
+    [Parameter(Mandatory=$true)] [String] $OMSResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $WorkspaceName
 )
 
