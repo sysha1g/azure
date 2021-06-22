@@ -91,6 +91,7 @@ try {
     $cloudType = 0
     $Command = 'C:setup.exe /qn NOAPM=1 ADD_OPINSIGHTS_WORKSPACE=1 OPINSIGHTS_WORKSPACE_AZURE_CLOUD_TYPE=' + $cloudType + ' OPINSIGHTS_WORKSPACE_ID="'+ $WorkspaceID +'" OPINSIGHTS_WORKSPACE_KEY="'+ $WorkspaceKey+'" AcceptEndUserLicenseAgreement=1'
     .\MMASetup.exe $Command
+    rm -r "$env:temp"
 
 }
 
