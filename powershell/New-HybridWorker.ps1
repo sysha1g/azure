@@ -10,8 +10,6 @@ Param(
     [Parameter(Mandatory=$true)] [String] $WorkspaceName
 )
 
-Start-Transcript -Path "transcript0.txt" -NoClobber
-
 # Install Az Modules - Needs refinement
 
 $deps1 = @("Az.Accounts","Az.Profile")
@@ -157,4 +155,3 @@ if($azureAutomationPresent){
     Start-Sleep -s 10
     Add-HybridRunbookWorker -GroupName $HybridGroupName -EndPoint $agentServiceEndpoint -Token $aaToken
 }
-Stop-Transcript
