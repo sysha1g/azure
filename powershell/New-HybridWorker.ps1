@@ -73,13 +73,7 @@ try {
     # Download the Microsoft monitoring agent
     Write-Output "Downloading and installing the Microsoft Monitoring Agent..."
 
-    # Check whether or not to download the 64-bit executable or the 32-bit executable
-    if ([Environment]::Is64BitProcess) {
-        $Source = "http://download.microsoft.com/download/1/5/E/15E274B9-F9E2-42AE-86EC-AC988F7631A0/MMASetup-AMD64.exe"
-    } else {
-        $Source = "http://download.microsoft.com/download/1/5/E/15E274B9-F9E2-42AE-86EC-AC988F7631A0/MMASetup-i386.exe"
-    }
-
+    $Source = "https://go.microsoft.com/fwlink/?LinkId=828603"
     $Destination = "$env:temp\MMASetup.exe"
 
     $null = Invoke-WebRequest -uri $Source -OutFile $Destination
