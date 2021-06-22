@@ -61,11 +61,10 @@ $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourc
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
-$directoryPathForMMADownload="C:\temp"
 
 try {
-  extract MMA.exe /$directoryPathForMMADownload /t:$directoryPathForMMADownload
-  %WinDir%\System32\msiexec.exe /x $directoryPathForMMADownload:\MOMAgent.msi /qb
+   $MyApp = Get-WmiObject -Class Win32_Product | Where-Object{$_.Name -eq "Microsoft Monitoring Agent"}
+   $MyApp.Uninstall() 
 }
 catch {
   Write-Output "Agent cant be removed using this automation."
