@@ -49,7 +49,7 @@ Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
 Set-AzContext -Subscription $subscriptionId
 
 # Activate the Azure Automation solution in the workspace
-$null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
+Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
 $WorkspaceId = Get-AzOperationalInsightsWorkspace -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceSharedKeys = Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
