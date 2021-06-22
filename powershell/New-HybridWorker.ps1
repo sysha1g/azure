@@ -51,7 +51,7 @@ Set-AzContext -Subscription $subscriptionId
 # Activate the Azure Automation solution in the workspace
 Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
 
-$WorkspaceId = Get-AzOperationalInsightsWorkspace -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
+$WorkspaceId = (Get-AzOperationalInsightsWorkspace -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName).CustomerId
 $WorkspaceSharedKeys = Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceKey = $WorkspaceSharedKeys.PrimarySharedKey
 
@@ -105,7 +105,7 @@ Invoke-Expression $tmpFolderOfMMA
 
 $cloudType = 0
 Write-Output "Connecting LA Workspace to the MMA Agent...."
-$commandToConnectoToLAWorkspace = '.\setup.exe /qn NOAPM=1 ADD_OPINSIGHTS_WORKSPACE=1 OPINSIGHTS_WORKSPACE_AZURE_CLOUD_TYPE=' + $cloudType + ' OPINSIGHTS_WORKSPACE_ID="'+ $workspaceId +'" OPINSIGHTS_WORKSPACE_KEY="'+ $workspaceKey+'" AcceptEndUserLicenseAgreement=1'
+$commandToConnectoToLAWorkspace = '.\setup.exe /qn NOAPM=1 ADD_OPINSIGHTS_WORKSPACE=1 OPINSIGHTS_WORKSPACE_AZURE_CLOUD_TYPE=' + $cloudType + ' OPINSIGHTS_WORKSPACE_ID="'+ $WorkspaceId +'" OPINSIGHTS_WORKSPACE_KEY="'+ $WorkspaceKey+'" AcceptEndUserLicenseAgreement=1'
 Invoke-Expression $commandToConnectoToLAWorkspace
 
 Start-Sleep -Seconds 60
