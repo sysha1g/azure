@@ -7,8 +7,7 @@ Param(
     [Parameter(Mandatory=$true)] [String] $AAResourceGroupName,
     [Parameter(Mandatory=$true)] [String] $AutomationAccountName,
     [Parameter(Mandatory=$true)] [String] $OMSResourceGroupName,
-    [Parameter(Mandatory=$true)] [String] $WorkspaceName,
-    [Parameter(Mandatory=$true)] [String] $WorkspaceSubscriptionId
+    [Parameter(Mandatory=$true)] [String] $WorkspaceName
 )
 
 Start-Transcript -Path "transcript0.txt" -NoClobber
@@ -47,7 +46,7 @@ $pscredential = New-Object -TypeName System.Management.Automation.PSCredential($
 Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $tenantId
 
 # Get Log Analytics details from Subscription
-Set-AzContext -Subscription $WorkspaceSubscriptionId
+Set-AzContext -Subscription $subscriptionId
 
 # Activate the Azure Automation solution in the workspace
 $null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourceGroupName -WorkspaceName $WorkspaceName -IntelligencePackName "AzureAutomation" -Enabled $true
@@ -55,9 +54,6 @@ $null = Set-AzOperationalInsightsIntelligencePack -ResourceGroupName $OMSResourc
 $WorkspaceId = Get-AzOperationalInsightsWorkspace -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceSharedKeys = Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName $OMSResourceGroupName -Name $WorkspaceName
 $WorkspaceKey = $WorkspaceSharedKeys.PrimarySharedKey
-
-# Set the context to the Automation Account Subscription
-Set-AzContext -Subscription $subscriptionId
 
 # Get Azure Automation Primary Key and Endpoint
 $AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $AAResourceGroupName -Name $AutomationAccountName
