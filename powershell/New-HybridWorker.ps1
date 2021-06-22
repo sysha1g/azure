@@ -61,6 +61,16 @@ $AutomationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $AAResourc
 $aaToken = $AutomationInfo.PrimaryKey
 $agentServiceEndpoint = $AutomationInfo.Endpoint
 
+$directoryPathForMMADownload="C:\temp"
+
+try {
+  extract MMA.exe /$directoryPathForMMADownload /t:$directoryPathForMMADownload
+  %WinDir%\System32\msiexec.exe /x $directoryPathForMMADownload:\MOMAgent.msi /qb
+}
+catch {
+  Write-Output "Agent cant be removed using this automation."
+}
+
 #Create path for the MMA agent download
 $directoryPathForMMADownload="C:\temp"
 if(!(Test-Path -path $directoryPathForMMADownload))  
@@ -91,7 +101,6 @@ Invoke-Expression $commandToInstallMMAAgent
 
 Start-Sleep -s 30
 
-
 $tmpFolderOfMMA = "cd c:\windows\temp\oms"
 Invoke-Expression $tmpFolderOfMMA
 
@@ -102,39 +111,51 @@ Invoke-Expression $commandToConnectoToLAWorkspace
 
 Start-Sleep -Seconds 60
 
-# Sleep until the MMA object has been registered
-Write-Output "Waiting for agent registration to complete..."
+# wait until the MMA Agent downloads AzureAutomation on to the machine
+$azureautomationpath = "C:\\Program Files\\Microsoft Monitoring Agent\\Agent\\AzureAutomation"
+$automationworkerversionpath = Join-Path $azureautomationpath "7.*" -Resolve
+$workerFolder = Join-Path $automationworkerversionpath "HybridRegistration"
 
-# Timeout = 180 seconds = 3 minutes
-$i = 18
+$i = 0
+$azureAutomationPresent = $false
+while($i -le 5)
+{
+    $i++
+    if($null -eq $workerFolder -or !(Test-Path -path $workerFolder))  
+    {  
+        Write-Host "Folder path is not present waiting..:  $workerFolder"    
+        Start-Sleep -s 60
 
-do {
-    
-    # Check for the MMA folders
-    try {
-        # Change the directory to the location of the hybrid registration module
-        cd "$env:ProgramFiles\Microsoft Monitoring Agent\Agent\AzureAutomation"
-        $version = (ls | Sort-Object LastWriteTime -Descending | Select -First 1).Name
-        cd "$version\HybridRegistration"
-
-        # Import the module
-        Import-Module (Resolve-Path('HybridRegistration.psd1'))
-
-        # Mark the flag as true
-        $hybrid = $true
-    } catch{
-
-        $hybrid = $false
-
+        $automationworkerversionpath = Join-Path $azureautomationpath "7.*" -Resolve
+        $workerFolder = Join-Path $automationworkerversionpath "HybridRegistration"
     }
-    # Sleep for 10 seconds
-    Start-Sleep -s 10
-    $i--
-
-} until ($hybrid -or ($i -le 0))
-
-if ($i -le 0) {
-    throw "The HybridRegistration module was not found. Please ensure the Microsoft Monitoring Agent was correctly installed."
+    else 
+    { 
+        $azureAutomationPresent = $true
+        Write-Host "The given folder path $workerFolder already exists"
+        break
+    }
+    Write-Verbose 'Timedout waiting for Automation folder.'
 }
-Add-HybridRunbookWorker -GroupName $HybridGroupName -EndPoint $agentServiceEndpoint -Token $aaToken
+
+if($azureAutomationPresent){
+
+    $itemLocation = "HKLM:\SOFTWARE\Microsoft\HybridRunbookWorker" 
+    $existingRegistration = Get-Item -Path $itemLocation 
+    if($null -ne $existingRegistration){ 
+        Write-Output "Registry was found..." 
+        Remove-Item -Path $itemLocation -Recurse
+    } 
+    else{   
+        Write-Output "Not found..." 
+    }
+
+    $azureAutomationDirectory = "cd '$workerFolder'"
+    Start-Sleep -s 10
+    Invoke-Expression $azureAutomationDirectory
+
+    Import-Module .\HybridRegistration.psd1
+    Start-Sleep -s 10
+    Add-HybridRunbookWorker -GroupName $HybridGroupName -EndPoint $agentServiceEndpoint -Token $aaToken
+}
 Stop-Transcript
